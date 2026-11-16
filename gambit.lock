@@ -1,0 +1,14 @@
+# What this port builds on: fetched at build time, never shipped.
+# Gambit (GPL-2 or later, The Gambit Project), v17.0.0-beta.3: the first
+# line whose GUI runs every Nash solver in-process on a wxThread, so it needs
+# no gambit-* programs and no redirected wxExecute (16.x shells out to them)
+GAMBIT_GIT=https://github.com/gambitproject/gambit.git
+GAMBIT_COMMIT=81aa2012f242b2c0471c1533f594f5fd71f7f1e5
+GAMBIT_VERSION=17.0.0-beta.3
+# Our own pieces, fetched at these commits
+# GFOpenWX Toolkit main 0dc65bc (1.0-rc4: grid, printing, PostScript and SVG DCs)
+WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
+WXT_COMMIT=0dc65bca5f71d10f15f078ddac04b5d24829a155
+# fpuauto (common/fpuauto): the FPU when there is one
+FPA_REPO=https://github.com/DalsinAI/amicradle-guest
+FPA_COMMIT=4a784c84b878fe0e9abade7006e67e1ded9b165c
