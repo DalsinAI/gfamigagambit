@@ -93,10 +93,16 @@ fi
 
 # objects made against another toolkit commit or another compat/ go: those
 # headers are not in the compile rules, and stale objects crash at start
-OBJREV="$WXT_COMMIT-$(cat "$HERE"/compat/*.h | sha256sum | cut -c1-16)"
+# (the mutex goes into every source, gbt_amiga_wx.h only into the GUI's)
+OBJREV="$WXT_COMMIT-$(cat "$HERE/compat/gbt_amiga_mutex.h" | sha256sum | cut -c1-16)"
 if [ "$(cat "$WORK/.objs" 2>/dev/null)" != "$OBJREV" ]; then
     rm -rf "$WORK/obj"
     echo "$OBJREV" > "$WORK/.objs"
+fi
+GUIREV=$(sha256sum < "$HERE/compat/gbt_amiga_wx.h" | cut -c1-16)
+if [ "$(cat "$WORK/.guiobjs" 2>/dev/null)" != "$GUIREV" ]; then
+    rm -f "$WORK"/obj/gui_*.o
+    echo "$GUIREV" > "$WORK/.guiobjs"
 fi
 
 LATE=""
@@ -112,7 +118,8 @@ for f in $SOURCES; do o="$O/$(objname "$f")"; [ -f "$o" ] || echo "$f"; done > "
 
 # --- compile: each source once; what is made stays for the next run ----------
 CC_FLAGS="$CF -std=gnu++20 $("$WXC" --cxxflags) -include $HERE/compat/gbt_amiga_mutex.h -I$SRC/src -DVERSION=\"$GAMBIT_VERSION\" -Wno-deprecated-declarations"
-export CC_FLAGS O SRC
+GUI_FLAGS="-include $HERE/compat/gbt_amiga_wx.h"
+export CC_FLAGS GUI_FLAGS O SRC
 if [ -s "$O/todo" ]; then
     l=$(left)
     [ "$l" -gt 60 ] || { echo "out of time: run again to go on ($(wc -l < "$O/todo") files left)"; exit 0; }
@@ -120,7 +127,8 @@ if [ -s "$O/todo" ]; then
     # shellcheck disable=SC2016
     timeout "$l" xargs -P "$JOBS" -I{} sh -c '
         o="$O/$(echo "$1" | sed "s|^src/||; s|/|_|g; s|\.cc\$|.o|")"
-        nice -n 19 m68k-amigaos-g++ $CC_FLAGS -c "$SRC/$1" -o "$o.tmp" > "${o%.o}.log" 2>&1 && mv "$o.tmp" "$o"' _ {} < "$O/todo"
+        case "$1" in src/gui/*) X=$GUI_FLAGS ;; *) X= ;; esac
+        nice -n 19 m68k-amigaos-g++ $CC_FLAGS $X -c "$SRC/$1" -o "$o.tmp" > "${o%.o}.log" 2>&1 && mv "$o.tmp" "$o"' _ {} < "$O/todo"
     rc=$?
     set -e
     for f in $(cat "$O/todo"); do

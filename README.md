@@ -14,6 +14,9 @@ equilibria and quantal response paths with Gambit's own solvers.
   what the GUI calls is linked.
 - `compat/gbt_amiga_mutex.h` gives `std::mutex` on the AmigaOS pthread
   library when the C++ library has no threads of its own.
+- `compat/gbt_amiga_wx.h` stands in for what the toolkit does not have yet
+  (`wxCommandLinkButton` as a plain button, no drag cursor of its own); each
+  piece goes away once the toolkit has the real one.
 
 ## Build
 
